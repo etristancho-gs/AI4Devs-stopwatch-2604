@@ -1,218 +1,370 @@
-// ==========================
-// Mode switching
-// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+    // ==========================
+    // DOM helpers
+    // ==========================
 
-const showTimerButton = document.getElementById("show-timer");
-const showCountdownButton = document.getElementById("show-countdown");
+    function getElement(id) {
+        return document.getElementById(id);
+    }
 
-const timerSection = document.getElementById("timer-section");
-const countdownSection = document.getElementById("countdown-section");
+    function hasRequiredElements(elements) {
+        return elements.every(Boolean);
+    }
 
-showTimerButton.addEventListener("click", () => {
-    timerSection.classList.add("active");
-    countdownSection.classList.remove("active");
+    function pad(value) {
+        return String(value).padStart(2, "0");
+    }
 
-    showTimerButton.classList.add("active");
-    showCountdownButton.classList.remove("active");
-});
+    function setButtonDisabled(button, disabled) {
+        if (button) {
+            button.disabled = disabled;
+        }
+    }
 
-showCountdownButton.addEventListener("click", () => {
-    countdownSection.classList.add("active");
-    timerSection.classList.remove("active");
+    // ==========================
+    // DOM references
+    // ==========================
 
-    showCountdownButton.classList.add("active");
-    showTimerButton.classList.remove("active");
-});
+    const showTimerButton = getElement("show-timer");
+    const showCountdownButton = getElement("show-countdown");
 
+    const timerSection = getElement("timer-section");
+    const countdownSection = getElement("countdown-section");
 
-// ==========================
-// Stopwatch logic
-// ==========================
+    const timerDisplay = getElement("timer-display");
+    const startTimerButton = getElement("start-timer");
+    const pauseTimerButton = getElement("pause-timer");
+    const resetTimerButton = getElement("reset-timer");
 
-const timerDisplay = document.getElementById("timer-display");
-const startTimerButton = document.getElementById("start-timer");
-const pauseTimerButton = document.getElementById("pause-timer");
-const resetTimerButton = document.getElementById("reset-timer");
+    const hoursInput = getElement("hours-input");
+    const minutesInput = getElement("minutes-input");
+    const secondsInput = getElement("seconds-input");
 
-let timerInterval = null;
-let timerStartTime = 0;
-let timerElapsedTime = 0;
-let timerRunning = false;
+    const countdownDisplay = getElement("countdown-display");
+    const countdownMessage = getElement("countdown-message");
 
-function formatStopwatchTime(milliseconds) {
-    const totalCentiseconds = Math.floor(milliseconds / 10);
+    const startCountdownButton = getElement("start-countdown");
+    const pauseCountdownButton = getElement("pause-countdown");
+    const resetCountdownButton = getElement("reset-countdown");
 
-    const centiseconds = totalCentiseconds % 100;
-    const totalSeconds = Math.floor(totalCentiseconds / 100);
+    const requiredElements = [
+        showTimerButton,
+        showCountdownButton,
+        timerSection,
+        countdownSection,
+        timerDisplay,
+        startTimerButton,
+        pauseTimerButton,
+        resetTimerButton,
+        hoursInput,
+        minutesInput,
+        secondsInput,
+        countdownDisplay,
+        countdownMessage,
+        startCountdownButton,
+        pauseCountdownButton,
+        resetCountdownButton
+    ];
 
-    const seconds = totalSeconds % 60;
-    const totalMinutes = Math.floor(totalSeconds / 60);
-
-    const minutes = totalMinutes % 60;
-    const hours = Math.floor(totalMinutes / 60);
-
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(centiseconds)}`;
-}
-
-function pad(value) {
-    return String(value).padStart(2, "0");
-}
-
-function updateTimerDisplay() {
-    const currentElapsedTime = Date.now() - timerStartTime + timerElapsedTime;
-    timerDisplay.textContent = formatStopwatchTime(currentElapsedTime);
-}
-
-startTimerButton.addEventListener("click", () => {
-    if (timerRunning) {
+    if (!hasRequiredElements(requiredElements)) {
+        console.warn("Timer and Countdown app could not start because some DOM elements are missing.");
         return;
     }
 
-    timerRunning = true;
-    timerStartTime = Date.now();
+    // ==========================
+    // Mode switching
+    // ==========================
 
-    timerInterval = setInterval(updateTimerDisplay, 10);
-});
+    function showTimerMode() {
+        timerSection.classList.add("active");
+        countdownSection.classList.remove("active");
 
-pauseTimerButton.addEventListener("click", () => {
-    if (!timerRunning) {
-        return;
+        showTimerButton.classList.add("active");
+        showCountdownButton.classList.remove("active");
     }
 
-    timerRunning = false;
-    clearInterval(timerInterval);
+    function showCountdownMode() {
+        countdownSection.classList.add("active");
+        timerSection.classList.remove("active");
 
-    timerElapsedTime += Date.now() - timerStartTime;
-});
+        showCountdownButton.classList.add("active");
+        showTimerButton.classList.remove("active");
+    }
 
-resetTimerButton.addEventListener("click", () => {
-    timerRunning = false;
-    clearInterval(timerInterval);
+    showTimerButton.addEventListener("click", showTimerMode);
+    showCountdownButton.addEventListener("click", showCountdownMode);
 
-    timerStartTime = 0;
-    timerElapsedTime = 0;
+    // ==========================
+    // Shared countdown formatting
+    // ==========================
 
-    timerDisplay.textContent = "00:00:00.00";
-});
+    function formatCountdownTime(milliseconds) {
+        const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
 
+        const seconds = totalSeconds % 60;
+        const totalMinutes = Math.floor(totalSeconds / 60);
 
-// ==========================
-// Countdown logic
-// ==========================
+        const minutes = totalMinutes % 60;
+        const hours = Math.floor(totalMinutes / 60);
 
-const hoursInput = document.getElementById("hours-input");
-const minutesInput = document.getElementById("minutes-input");
-const secondsInput = document.getElementById("seconds-input");
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
 
-const countdownDisplay = document.getElementById("countdown-display");
-const countdownMessage = document.getElementById("countdown-message");
+    // ==========================
+    // Stopwatch logic
+    // ==========================
 
-const startCountdownButton = document.getElementById("start-countdown");
-const pauseCountdownButton = document.getElementById("pause-countdown");
-const resetCountdownButton = document.getElementById("reset-countdown");
+    let timerAnimationFrameId = null;
+    let timerStartTime = 0;
+    let timerElapsedTime = 0;
+    let timerRunning = false;
 
-let countdownInterval = null;
-let countdownRemainingTime = getCountdownInputTime();
-let countdownEndTime = 0;
-let countdownRunning = false;
+    function formatStopwatchTime(milliseconds) {
+        const totalCentiseconds = Math.floor(milliseconds / 10);
 
-function getCountdownInputTime() {
-    const hours = Number(hoursInput.value) || 0;
-    const minutes = Number(minutesInput.value) || 0;
-    const seconds = Number(secondsInput.value) || 0;
+        const centiseconds = totalCentiseconds % 100;
+        const totalSeconds = Math.floor(totalCentiseconds / 100);
 
-    return ((hours * 3600) + (minutes * 60) + seconds) * 1000;
-}
+        const seconds = totalSeconds % 60;
+        const totalMinutes = Math.floor(totalSeconds / 60);
 
-function formatCountdownTime(milliseconds) {
-    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+        const minutes = totalMinutes % 60;
+        const hours = Math.floor(totalMinutes / 60);
 
-    const seconds = totalSeconds % 60;
-    const totalMinutes = Math.floor(totalSeconds / 60);
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(centiseconds)}`;
+    }
 
-    const minutes = totalMinutes % 60;
-    const hours = Math.floor(totalMinutes / 60);
+    function updateTimerButtons() {
+        setButtonDisabled(startTimerButton, timerRunning);
+        setButtonDisabled(pauseTimerButton, !timerRunning);
+        setButtonDisabled(resetTimerButton, timerRunning || timerElapsedTime === 0);
+    }
 
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-}
+    function renderTimer() {
+        const currentElapsedTime = Date.now() - timerStartTime + timerElapsedTime;
+        timerDisplay.textContent = formatStopwatchTime(currentElapsedTime);
 
-function updateCountdownDisplay() {
-    countdownRemainingTime = countdownEndTime - Date.now();
+        if (timerRunning) {
+            timerAnimationFrameId = requestAnimationFrame(renderTimer);
+        }
+    }
 
-    if (countdownRemainingTime <= 0) {
-        countdownRemainingTime = 0;
-        clearInterval(countdownInterval);
+    function startTimer() {
+        if (timerRunning) {
+            return;
+        }
+
+        timerRunning = true;
+        timerStartTime = Date.now();
+
+        updateTimerButtons();
+        timerAnimationFrameId = requestAnimationFrame(renderTimer);
+    }
+
+    function pauseTimer() {
+        if (!timerRunning) {
+            return;
+        }
+
+        timerRunning = false;
+        cancelAnimationFrame(timerAnimationFrameId);
+
+        timerElapsedTime += Date.now() - timerStartTime;
+        timerDisplay.textContent = formatStopwatchTime(timerElapsedTime);
+
+        updateTimerButtons();
+    }
+
+    function resetTimer() {
+        timerRunning = false;
+        cancelAnimationFrame(timerAnimationFrameId);
+
+        timerAnimationFrameId = null;
+        timerStartTime = 0;
+        timerElapsedTime = 0;
+
+        timerDisplay.textContent = "00:00:00.00";
+        updateTimerButtons();
+    }
+
+    startTimerButton.addEventListener("click", startTimer);
+    pauseTimerButton.addEventListener("click", pauseTimer);
+    resetTimerButton.addEventListener("click", resetTimer);
+
+    // ==========================
+    // Countdown logic
+    // ==========================
+
+    let countdownIntervalId = null;
+    let countdownRemainingTime = 0;
+    let countdownEndTime = 0;
+    let countdownRunning = false;
+
+    function clampNumber(value, min, max) {
+        const numericValue = Number(value);
+
+        if (Number.isNaN(numericValue)) {
+            return min;
+        }
+
+        return Math.min(Math.max(Math.floor(numericValue), min), max);
+    }
+
+    function normalizeCountdownInputs() {
+        const hours = clampNumber(hoursInput.value, 0, 99);
+        const minutes = clampNumber(minutesInput.value, 0, 59);
+        const seconds = clampNumber(secondsInput.value, 0, 59);
+
+        hoursInput.value = String(hours);
+        minutesInput.value = String(minutes);
+        secondsInput.value = String(seconds);
+
+        return {
+            hours,
+            minutes,
+            seconds
+        };
+    }
+
+    function readCountdownInputTime() {
+        const { hours, minutes, seconds } = normalizeCountdownInputs();
+
+        return ((hours * 3600) + (minutes * 60) + seconds) * 1000;
+    }
+
+    function setCountdownInputsDisabled(disabled) {
+        hoursInput.disabled = disabled;
+        minutesInput.disabled = disabled;
+        secondsInput.disabled = disabled;
+    }
+
+    function clearCountdownMessage() {
+        countdownMessage.textContent = "";
+        countdownSection.classList.remove("finished");
+    }
+
+    function updateCountdownButtons() {
+        const inputTime = readCountdownInputTime();
+        const hasValue = inputTime > 0 || countdownRemainingTime > 0;
+
+        setButtonDisabled(startCountdownButton, countdownRunning);
+        setButtonDisabled(pauseCountdownButton, !countdownRunning);
+        setButtonDisabled(resetCountdownButton, countdownRunning || !hasValue);
+
+        setCountdownInputsDisabled(countdownRunning);
+    }
+
+    function resetCountdownToZero() {
         countdownRunning = false;
+        clearInterval(countdownIntervalId);
+
+        countdownIntervalId = null;
+        countdownRemainingTime = 0;
+        countdownEndTime = 0;
+
+        hoursInput.value = "0";
+        minutesInput.value = "0";
+        secondsInput.value = "0";
+
+        countdownDisplay.textContent = "00:00:00";
+
+        clearCountdownMessage();
+        updateCountdownButtons();
+    }
+
+    function finishCountdown() {
+        countdownRunning = false;
+        countdownRemainingTime = 0;
+
+        clearInterval(countdownIntervalId);
+        countdownIntervalId = null;
 
         countdownDisplay.textContent = "00:00:00";
         countdownMessage.textContent = "Time is up!";
         countdownSection.classList.add("finished");
 
-        return;
+        updateCountdownButtons();
     }
 
-    countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
-}
+    function updateCountdownDisplay() {
+        countdownRemainingTime = countdownEndTime - Date.now();
 
-function refreshCountdownFromInputs() {
-    if (countdownRunning) {
-        return;
+        if (countdownRemainingTime <= 0) {
+            finishCountdown();
+            return;
+        }
+
+        countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
     }
 
-    countdownRemainingTime = getCountdownInputTime();
-    countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
-    countdownMessage.textContent = "";
-    countdownSection.classList.remove("finished");
-}
+    function refreshCountdownFromInputs() {
+        if (countdownRunning) {
+            return;
+        }
 
-hoursInput.addEventListener("input", refreshCountdownFromInputs);
-minutesInput.addEventListener("input", refreshCountdownFromInputs);
-secondsInput.addEventListener("input", refreshCountdownFromInputs);
+        countdownRemainingTime = readCountdownInputTime();
+        countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
 
-startCountdownButton.addEventListener("click", () => {
-    if (countdownRunning) {
-        return;
+        clearCountdownMessage();
+        updateCountdownButtons();
     }
 
-    if (countdownRemainingTime <= 0) {
-        countdownRemainingTime = getCountdownInputTime();
+    function startCountdown() {
+        if (countdownRunning) {
+            return;
+        }
+
+        countdownRemainingTime = readCountdownInputTime();
+
+        if (countdownRemainingTime <= 0) {
+            countdownDisplay.textContent = "00:00:00";
+            countdownMessage.textContent = "Please enter a time greater than zero.";
+            countdownSection.classList.remove("finished");
+            updateCountdownButtons();
+            return;
+        }
+
+        countdownRunning = true;
+        countdownEndTime = Date.now() + countdownRemainingTime;
+
+        clearCountdownMessage();
+        updateCountdownButtons();
+        updateCountdownDisplay();
+
+        countdownIntervalId = setInterval(updateCountdownDisplay, 250);
     }
 
-    if (countdownRemainingTime <= 0) {
-        countdownMessage.textContent = "Please enter a time greater than zero.";
-        return;
+    function pauseCountdown() {
+        if (!countdownRunning) {
+            return;
+        }
+
+        countdownRunning = false;
+        clearInterval(countdownIntervalId);
+
+        countdownIntervalId = null;
+        countdownRemainingTime = Math.max(0, countdownEndTime - Date.now());
+        countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
+
+        updateCountdownButtons();
     }
 
-    countdownRunning = true;
-    countdownMessage.textContent = "";
-    countdownSection.classList.remove("finished");
+    hoursInput.addEventListener("input", refreshCountdownFromInputs);
+    minutesInput.addEventListener("input", refreshCountdownFromInputs);
+    secondsInput.addEventListener("input", refreshCountdownFromInputs);
 
-    countdownEndTime = Date.now() + countdownRemainingTime;
-    countdownInterval = setInterval(updateCountdownDisplay, 250);
-    updateCountdownDisplay();
+    hoursInput.addEventListener("blur", refreshCountdownFromInputs);
+    minutesInput.addEventListener("blur", refreshCountdownFromInputs);
+    secondsInput.addEventListener("blur", refreshCountdownFromInputs);
+
+    startCountdownButton.addEventListener("click", startCountdown);
+    pauseCountdownButton.addEventListener("click", pauseCountdown);
+    resetCountdownButton.addEventListener("click", resetCountdownToZero);
+
+    // ==========================
+    // Initial state
+    // ==========================
+
+    resetTimer();
+    resetCountdownToZero();
 });
-
-pauseCountdownButton.addEventListener("click", () => {
-    if (!countdownRunning) {
-        return;
-    }
-
-    countdownRunning = false;
-    clearInterval(countdownInterval);
-
-    countdownRemainingTime = countdownEndTime - Date.now();
-    countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
-});
-
-resetCountdownButton.addEventListener("click", () => {
-    countdownRunning = false;
-    clearInterval(countdownInterval);
-
-    countdownRemainingTime = getCountdownInputTime();
-    countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
-
-    countdownMessage.textContent = "";
-    countdownSection.classList.remove("finished");
-});
-
-refreshCountdownFromInputs();
