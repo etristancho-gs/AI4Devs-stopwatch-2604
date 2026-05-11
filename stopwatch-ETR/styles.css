@@ -1,0 +1,297 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at top, #2f80ed 0%, #123f7a 35%, #071b33 100%);
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app {
+    width: min(900px, 92vw);
+    padding: 32px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0 0 24px;
+    font-size: clamp(2rem, 5vw, 4rem);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffdf3d;
+    text-shadow: 4px 4px 0 #000000;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 2rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 0 #000000;
+}
+
+.mode-selector {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.mode-button,
+.control-button {
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.mode-button {
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-size: 1rem;
+    color: #ffffff;
+    background: #1f2937;
+    box-shadow: 0 5px 0 #000000;
+}
+
+.mode-button.active {
+    background: #ff3b30;
+}
+
+.mode-button:hover,
+.control-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.mode-button:active,
+.control-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #000000;
+}
+
+.panel {
+    display: none;
+    padding: 32px;
+    border: 6px solid #ffffff;
+    border-radius: 28px;
+    background: linear-gradient(180deg, #1e65c1 0%, #0d3c82 100%);
+    box-shadow:
+        0 12px 0 #041426,
+        0 24px 40px rgba(0, 0, 0, 0.45);
+}
+
+.panel.active {
+    display: block;
+}
+
+.display {
+    margin: 24px auto;
+    padding: 24px 14px;
+    width: 100%;
+    max-width: 720px;
+    border-radius: 20px;
+    background: #020617;
+    color: #22ff55;
+    border: 5px solid #ffffff;
+    font-family: "Courier New", Courier, monospace;
+    font-size: clamp(2rem, 7.5vw, 5rem);
+    line-height: 1;
+    font-weight: bold;
+    letter-spacing: clamp(0px, 0.35vw, 2px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    box-shadow: inset 0 0 20px rgba(34, 255, 85, 0.25);
+}
+
+/*
+    El cronómetro muestra más caracteres que la cuenta atrás:
+    00:00:00.00 frente a 00:01:00.
+    Por eso se usa un tamaño específico menor para evitar desbordamientos.
+*/
+#timer-display {
+    font-size: clamp(1.8rem, 6.6vw, 4.6rem);
+    letter-spacing: clamp(0px, 0.25vw, 1.5px);
+}
+
+#countdown-display {
+    font-size: clamp(2.2rem, 8vw, 5.4rem);
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+.control-button {
+    min-width: 130px;
+    padding: 18px 26px;
+    border-radius: 18px;
+    color: #ffffff;
+    font-size: 1.15rem;
+    box-shadow: 0 7px 0 #000000;
+}
+
+.control-button.start {
+    background: #16a34a;
+}
+
+.control-button.pause {
+    background: #f59e0b;
+}
+
+.control-button.reset {
+    background: #dc2626;
+}
+
+.inputs {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.inputs label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #ffdf3d;
+    text-shadow: 1px 1px 0 #000000;
+}
+
+.inputs input {
+    width: 110px;
+    padding: 12px;
+    border: 4px solid #ffffff;
+    border-radius: 14px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-align: center;
+    color: #111827;
+    background: #ffffff;
+}
+
+.message {
+    min-height: 32px;
+    margin-top: 24px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffdf3d;
+    text-shadow: 2px 2px 0 #000000;
+}
+
+.finished .display {
+    color: #ff3333;
+    animation: pulse 0.6s infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        transform: scale(1);
+        box-shadow: inset 0 0 20px rgba(255, 51, 51, 0.25);
+    }
+
+    to {
+        transform: scale(1.03);
+        box-shadow: inset 0 0 35px rgba(255, 51, 51, 0.6);
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        align-items: flex-start;
+    }
+
+    .app {
+        width: 100%;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: clamp(1.8rem, 9vw, 3rem);
+        letter-spacing: 1px;
+        text-shadow: 3px 3px 0 #000000;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+    }
+
+    .panel {
+        padding: 22px 14px;
+        border-width: 4px;
+        border-radius: 22px;
+    }
+
+    .display {
+        padding: 20px 8px;
+        border-width: 4px;
+        border-radius: 16px;
+        letter-spacing: 0;
+    }
+
+    #timer-display {
+        font-size: clamp(1.45rem, 8.2vw, 3rem);
+        letter-spacing: 0;
+    }
+
+    #countdown-display {
+        font-size: clamp(1.9rem, 10vw, 3.4rem);
+        letter-spacing: 0;
+    }
+
+    .controls {
+        gap: 14px;
+    }
+
+    .control-button {
+        width: 100%;
+        padding: 16px 22px;
+    }
+
+    .inputs {
+        gap: 12px;
+    }
+
+    .inputs input {
+        width: 90px;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .app {
+        padding: 14px;
+    }
+
+    .panel {
+        padding: 18px 10px;
+    }
+
+    #timer-display {
+        font-size: clamp(1.25rem, 7.8vw, 2.4rem);
+    }
+
+    #countdown-display {
+        font-size: clamp(1.7rem, 9vw, 3rem);
+    }
+
+    .inputs input {
+        width: 78px;
+    }
+}

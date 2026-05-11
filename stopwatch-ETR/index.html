@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer and Countdown</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="app">
+        <h1>Timer and Countdown</h1>
+
+        <section class="mode-selector">
+            <button id="show-timer" class="mode-button active">Stopwatch</button>
+            <button id="show-countdown" class="mode-button">Countdown</button>
+        </section>
+
+        <section id="timer-section" class="panel active">
+            <h2>Stopwatch</h2>
+
+            <div id="timer-display" class="display">
+                00:00:00.00
+            </div>
+
+            <div class="controls">
+                <button id="start-timer" class="control-button start">Start</button>
+                <button id="pause-timer" class="control-button pause">Pause</button>
+                <button id="reset-timer" class="control-button reset">Reset</button>
+            </div>
+        </section>
+
+        <section id="countdown-section" class="panel">
+            <h2>Countdown</h2>
+
+            <div class="inputs">
+                <label>
+                    Hours
+                    <input id="hours-input" type="number" min="0" value="0">
+                </label>
+
+                <label>
+                    Minutes
+                    <input id="minutes-input" type="number" min="0" max="59" value="0">
+                </label>
+
+                <label>
+                    Seconds
+                    <input id="seconds-input" type="number" min="0" max="59" value="0">
+                </label>
+            </div>
+
+            <div id="countdown-display" class="display">
+                00:00:00
+            </div>
+
+            <div class="controls">
+                <button id="start-countdown" class="control-button start">Start</button>
+                <button id="pause-countdown" class="control-button pause">Pause</button>
+                <button id="reset-countdown" class="control-button reset">Reset</button>
+            </div>
+
+            <p id="countdown-message" class="message"></p>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
